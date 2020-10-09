@@ -1,37 +1,20 @@
-package client;
+package server;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.net.URL;
-import java.util.ResourceBundle;
 
-import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-
-public class Controller implements Initializable {
-
-
-    @FXML
-    public TextArea textArea;
-    @FXML
-    public TextField textField;
-
-    final String IP_ADDRESS = "LocalHost";
-    final int PORT = 8189;
-    Socket socket;
+public class ClientHandler {
     DataInputStream in;
     DataOutputStream out;
+    Socket socket = null; // Пользовательский соккет
+    Server server;
 
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    public ClientHandler( Server server, Socket socket) {
         try {
-            socket = new Socket(IP_ADDRESS, PORT);
+            this.socket = socket;
+            this.server = server;
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
 
@@ -43,9 +26,7 @@ public class Controller implements Initializable {
                         if (str.equals("/end")) {
                             break;
                         }
-
-                        textArea.appendText(str + "\n");
-
+                        server.broadcastMsq(str);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -61,20 +42,13 @@ public class Controller implements Initializable {
 
 
             }).start();
-
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-    public void sendMsg(ActionEvent actionEvent) {
+    public void sendMsg(String msg) {
         try {
-            if (textField.getText().trim().length() == 0) {
-                return;
-            }
-            out.writeUTF(textField.getText());
-            textField.clear();
-            textField.requestFocus();
+            out.writeUTF(msg);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -6,13 +6,17 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 import java.util.Scanner;
+import java.util.Vector;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Server {
+  List<ClientHandler> clients;
 
-  public static void main(String[] args) {
-    DataInputStream in;
-    DataOutputStream out;
+  public  Server(){
+    clients = new CopyOnWriteArrayList<>();
+
 
     ServerSocket server = null; // серверный соккет
     Socket socket = null; // Пользовательский соккет
@@ -21,22 +25,16 @@ public class Server {
     try {
       server = new ServerSocket(PORT); // Создаем объект сервер
       System.out.println("Server started");
-      socket = server.accept(); // Блокирующий оператор. Который заставляет сервер ждать клиента типо потока чтоли также серверный порт выделит по этой команде соккет серверный и передаст в пользовательский
-      System.out.println("Client connected");
 
 
-      in = new DataInputStream(socket.getInputStream());
-      out = new DataOutputStream(socket.getOutputStream());
+
+
       
       while (true) {
-        String str = in.readUTF();
+        socket = server.accept(); // Блокирующий оператор. Который заставляет сервер ждать клиента типо потока чтоли также серверный порт выделит по этой команде соккет серверный и передаст в пользовательский
+        System.out.println("Client connected");
 
-        if(str.equals("/end")) {
-          break;
-        }
-
-        System.out.println("Client" + str);
-        out.writeUTF("echo: " + str);
+        clients.add(new ClientHandler(this, socket));
       }
       
       
@@ -54,6 +52,11 @@ public class Server {
       } catch (IOException e) {
         e.printStackTrace();
       }
+    }
+  }
+  public void broadcastMsq(String msq) {
+    for (ClientHandler c : clients) {
+      c.sendMsg(msq);
     }
   }
 
