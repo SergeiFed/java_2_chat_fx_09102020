@@ -27,6 +27,16 @@ public class Controller implements Initializable {
   DataOutputStream out;
 
   public void sendMsg(ActionEvent actionEvent) {
+    try {
+      if(textField.getText().trim().length() == 0) {
+        return;
+      }
+      out.writeUTF(textField.getText());
+      textField.clear();
+      textField.requestFocus();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
@@ -45,14 +55,16 @@ public class Controller implements Initializable {
               break;
             }
 
-            System.out.println("Client" + str);
-            out.writeUTF("echo: " + str);
+            textArea.appendText(str);
+
           }
         } catch (IOException e) {
           e.printStackTrace();
         } finally {
           try {
             socket.close();
+            in.close();
+            out.close();
           } catch (IOException e) {
             e.printStackTrace();
           }
